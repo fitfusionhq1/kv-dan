@@ -1,5 +1,5 @@
 // === NASTAVI TO ===
-const API_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE"; // npr. https://script.google.com/macros/s/.../exec
+const API_URL = "https://script.google.com/macros/s/AKfycbzbDymLy7RZytpyPBte_rU7pYACwf5NxLVHAZHWiWK885CwiH5ndqIC7ccxPgUglFXy/exec"; // npr. https://script.google.com/macros/s/.../exec
 
 // --- elementi ---
 const rsvpForm = document.getElementById("rsvpForm");
@@ -161,4 +161,3 @@ wishlistEl.addEventListener("change", async (e) => {
     console.error(err);
   }
 })();
-const API_URL = "https://script.google.com/macros/s/AKfycbzbDymLy7RZytpyPBte_rU7pYACwf5NxLVHAZHWiWK885CwiH5ndqIC7ccxPgUglFXy/exec";
