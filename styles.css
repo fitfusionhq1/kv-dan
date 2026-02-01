@@ -73,7 +73,7 @@ body::before{
   object-fit:cover;
   border-radius:16px;
 
-  margin-top: 40px;     /* hero slika malce nižje */
+  margin-top: 16px;     /* hero slika malce nižje */
   margin-bottom: 14px;
 
   opacity: 0.98;
