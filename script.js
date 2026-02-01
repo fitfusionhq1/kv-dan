@@ -39,9 +39,14 @@ function toBool(v) {
 
 // === RSVP ===
 function clearRSVPFields() {
-  document.getElementById("attendance").value = "";
-  document.getElementById("ime").value = "";
-  document.getElementById("priimek").value = "";
+  // reset na začetne vrednosti iz HTML
+  rsvpForm.reset();
+
+  // zanesljivo vrne select na placeholder (prvi option)
+  const attendanceEl = document.getElementById("attendance");
+  attendanceEl.selectedIndex = 0;
+
+  // če imaš local cache, ga pobriši
   localStorage.removeItem(RSVP_LOCAL_KEY);
 }
 
