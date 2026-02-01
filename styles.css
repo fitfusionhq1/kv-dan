@@ -13,14 +13,21 @@
 html,body{ height:100%; }
 
 body{
+  position: relative;
   margin:0;
   min-height:100svh;
   display:grid;
   place-items:center;
   padding: 26px;
 
-  body{
-  position: relative;
+  /* samo barvno ozadje (brez šopka tukaj) */
+  background:
+    radial-gradient(900px 520px at 20% 10%, rgba(255,255,255,.18) 0%, transparent 60%),
+    radial-gradient(900px 520px at 85% 0%, rgba(0,0,0,.10) 0%, transparent 60%),
+    var(--bg);
+
+  color:var(--text);
+  font-family: "Cormorant Garamond", serif;
 }
 
 /* ŠOPEK ČEZ CELOTEN ZASLON */
@@ -28,11 +35,9 @@ body::before{
   content: "";
   position: fixed;
   inset: 0;
-
   background: url("bouquet.svg") no-repeat center;
   background-size: min(1200px, 95vw);
-
-  opacity: 0.18;      /* prilagodi 0.08–0.30 */
+  opacity: 0.18;       /* prilagodi 0.08–0.30 */
   pointer-events: none;
   z-index: 0;
 }
@@ -42,20 +47,6 @@ body::before{
   position: relative;
   z-index: 1;
 }
-
-  /* Background: barva + watermark šopek */
-  background:
-    url("bouquet.svg") no-repeat right 26px bottom 22px,
-    radial-gradient(900px 520px at 20% 10%, rgba(255,255,255,.18) 0%, transparent 60%),
-    radial-gradient(900px 520px at 85% 0%, rgba(0,0,0,.10) 0%, transparent 60%),
-    var(--bg);
-  background-size: 320px, auto, auto, auto;
-
-  color:var(--text);
-  font-family: "Cormorant Garamond", serif;
-}
-
-.wrap{ width: min(820px, 100%); }
 
 .card{
   position: relative;     /* DODANO */
@@ -240,20 +231,3 @@ h2{
   .wishLink{ width: fit-content; }
 }
 
-.card::after{
-  content:"";
-  position:absolute;
-  right:-40px;
-  bottom:-40px;
-  width: 380px;
-  height: 380px;
-  background: url("bouquet.svg") no-repeat center / contain;
-  opacity: 0.25;
-  pointer-events:none;
-  z-index:0;
-}
-
-.card > *{
-  position: relative;
-  z-index:1;
-}
