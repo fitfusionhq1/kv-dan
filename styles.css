@@ -30,18 +30,21 @@ body{
 }
 
 /* ŠOPEK ČEZ CELOTEN ZASLON */
+
 body::before{
   content: "";
   position: fixed;
   inset: 0;
-  background: url("bouquet.svg") no-repeat center;
-  background-size: min(1400px, 110vw);
-  opacity: 0.12;       /* prilagodi 0.08–0.30 */
-  pointer-events: none;
   z-index: 0;
+  pointer-events: none;
 
+  background-image: url("bouquet.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: min(1700px, 130vw);
 
-filter: blur(0.2px);
+  opacity: 0.11;          /* 0.08–0.18 je najlepše */
+  filter: blur(0.3px);    /* optional */
 }
 
 /* Vsebina mora biti nad šopkom */
