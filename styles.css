@@ -287,18 +287,12 @@ h2{
     display:none;
   }
 }
-/* FORCE layering order */
+/* če želiš, da watermark ostane res zadaj */
 body::before{
-  z-index: -3 !important;   /* watermark naj bo zadaj */
+  z-index: -3;
+}
 
-body::after{
-  position: fixed;
-  bottom: 10px;
-  left: 10px;
-  padding: 6px 10px;
-  background: rgba(0,0,0,.35);
-  border: 1px solid rgba(255,255,255,.25);
-  border-radius: 10px;
-  font-size: 12px;
-  z-index: 9999;
+/* side slike naj ostanejo v ospredju */
+.sideImg{
+  z-index: 5;
 }
