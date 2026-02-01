@@ -256,10 +256,15 @@ h2{
   top: 50%;
   transform: translateY(-50%);
   height: 75vh;
+  max-width: 22vw;          /* DODANO: da ne zasede preveč širine */
+  object-fit: contain;      /* DODANO: ne reže */
   opacity: 0.18;
   pointer-events: none;
   z-index: 0;
+
+  filter: blur(0.2px);      /* optional: malo mehkejše */
 }
+
 
 .sideLeft{
   left: 0;
