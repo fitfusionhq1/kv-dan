@@ -1,43 +1,22 @@
 // === NASTAVI TO ===
-const API_URL = "https://script.google.com/macros/s/AKfycbzbDymLy7RZytpyPBte_rU7pYACwf5NxLVHAZHWiWK885CwiH5ndqIC7ccxPgUglFXy/exec";
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbzbDymLy7RZytpyPBte_rU7pYACwf5NxLVHAZHWiWK885CwiH5ndqIC7ccxPgUglFXy/exec";
 
 // --- elementi ---
 const rsvpForm = document.getElementById("rsvpForm");
 const rsvpStatus = document.getElementById("rsvpStatus");
 const wishlistEl = document.getElementById("wishlist");
 
-// --- lokalni cache (da se ime/priimek ne izgubi) ---
-const RSVP_LOCAL_KEY = "najin_dan_rsvp_local_v2";
+// --- lokalni cache (če ga želiš uporabljat) ---
+const RSVP_LOCAL_KEY = "najin_dan_rsvp_local_v3";
 
-function loadLocalRSVP() {
-  try {
-    const raw = localStorage.getItem(RSVP_LOCAL_KEY);
-    if (!raw) return;
-    const d = JSON.parse(raw);
-
-    if (d.attendance) document.getElementById("attendance").value = d.attendance;
-    if (d.ime) document.getElementById("ime").value = d.ime;
-    if (d.priimek) document.getElementById("priimek").value = d.priimek;
-  } catch {}
-}
-
-function saveLocalRSVP(attendance, ime, priimek) {
-  localStorage.setItem(
-    RSVP_LOCAL_KEY,
-    JSON.stringify({ attendance, ime, priimek, savedAt: new Date().toISOString() })
-  );
-}
-
-loadLocalRSVP();
-
-// --- helper fetch (brez custom headers, da se izognemo preflight/CORS) ---
+// ---- helpers ----
 async function postJSONNoPreflight(payload) {
   const res = await fetch(API_URL, {
     method: "POST",
     body: JSON.stringify(payload),
   });
 
-  // Če Apps Script vrne HTML (login/permission), bo to pomagalo pri debug:
   const txt = await res.text();
   try {
     return JSON.parse(txt);
@@ -54,7 +33,18 @@ async function getWishlist() {
   return res.json();
 }
 
-// --- RSVP submit: zapiše v Sheet + shrani lokalno ---
+function toBool(v) {
+  return v === true || v === 1 || v === "1" || String(v).toLowerCase() === "true";
+}
+
+// === RSVP ===
+function clearRSVPFields() {
+  document.getElementById("attendance").value = "";
+  document.getElementById("ime").value = "";
+  document.getElementById("priimek").value = "";
+  localStorage.removeItem(RSVP_LOCAL_KEY);
+}
+
 rsvpForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -70,8 +60,6 @@ rsvpForm.addEventListener("submit", async (e) => {
   rsvpStatus.textContent = "Pošiljam ...";
 
   try {
-    saveLocalRSVP(attendance, ime, priimek);
-
     const result = await postJSONNoPreflight({
       op: "rsvp",
       attendance,
@@ -82,18 +70,21 @@ rsvpForm.addEventListener("submit", async (e) => {
 
     if (!result.ok) throw new Error(result.error || "Napaka");
 
+    // ✅ počisti polja po uspehu
+    clearRSVPFields();
     rsvpStatus.textContent = "Hvala! Shranjeno ✅";
+
+    // (Optional) po 3s skrij status
+    setTimeout(() => {
+      rsvpStatus.textContent = "";
+    }, 3000);
   } catch (err) {
     console.error(err);
     rsvpStatus.textContent = "Ni uspelo poslati 😕 Poskusi še enkrat.";
   }
 });
 
-// --- Wishlist global sync ---
-function toBool(v) {
-  return v === true || v === 1 || v === "1" || String(v).toLowerCase() === "true";
-}
-
+// === Wishlist global sync (lock once taken) ===
 function setItemUI(li, taken, takenBy) {
   const cb = li.querySelector(".wishCheck");
   const isTaken = toBool(taken);
@@ -101,6 +92,13 @@ function setItemUI(li, taken, takenBy) {
   cb.checked = isTaken;
   li.classList.toggle("taken", isTaken);
   li.title = isTaken && takenBy ? `Izbral: ${takenBy}` : "";
+
+  // ✅ če je enkrat taken, ga zaklenemo
+  if (isTaken) {
+    cb.disabled = true;
+  } else {
+    cb.disabled = false;
+  }
 }
 
 async function refreshWishlistFromServer() {
@@ -121,36 +119,49 @@ async function refreshWishlistFromServer() {
 wishlistEl.addEventListener("change", async (e) => {
   if (!e.target.classList.contains("wishCheck")) return;
 
+  // če je checkbox disabled, ignoriraj (varnost)
+  if (e.target.disabled) return;
+
   const li = e.target.closest(".wish");
   const id = li.dataset.id;
   const taken = e.target.checked;
+
+  // ✅ dovolimo samo "zaklep" (false -> true)
+  if (!taken) {
+    // uporabnik je poskusil odkljukati
+    e.target.checked = true;
+    return;
+  }
 
   const ime = document.getElementById("ime").value.trim();
   const priimek = document.getElementById("priimek").value.trim();
   const takenBy = (ime || priimek) ? `${ime} ${priimek}`.trim() : "Anonimno";
 
-  // optimistično UI
-  setItemUI(li, taken, takenBy);
-
+  // optimistično UI: takoj prečrtaj in zakleni
+  setItemUI(li, true, takenBy);
   e.target.disabled = true;
 
   try {
     const result = await postJSONNoPreflight({
       op: "toggle",
       id,
-      taken,
+      taken: true,
       takenBy,
     });
 
     if (!result.ok) throw new Error(result.error || "Toggle failed");
 
+    // osveži iz strežnika (za 100% usklajenost)
     await refreshWishlistFromServer();
   } catch (err) {
     console.error(err);
-    try { await refreshWishlistFromServer(); } catch {}
+
+    // rollback: osveži iz strežnika
+    try {
+      await refreshWishlistFromServer();
+    } catch {}
+
     alert("Ni uspelo shraniti izbire. Poskusi še enkrat.");
-  } finally {
-    e.target.disabled = false;
   }
 });
 
@@ -165,4 +176,3 @@ wishlistEl.addEventListener("change", async (e) => {
     console.error(err);
   }
 })();
-
