@@ -40,12 +40,19 @@ body::before{
 
   background-image: url("bouquet.svg");
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: 220vw 220vh;
 
-  opacity: 0.08;          /* 0.08–0.18 je najlepše */
-  filter: blur(0.3px);    /* optional */
+  /* premik: bolj desno + malo navzdol */
+  background-position: 65% 55%;
+
+  /* večje */
+  background-size: 240vw;
+
+  /* bolj nežen */
+  opacity: 0.08;
+
+  filter: blur(0.2px);
 }
+
 
 /* Vsebina mora biti nad šopkom */
 .wrap, .card{
