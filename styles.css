@@ -1,82 +1,82 @@
 :root{
   --bg:#839ea2;
-  --card: rgba(255,255,255,.14);
-  --card2: rgba(255,255,255,.10);
   --text:#ffffff;
   --muted: rgba(255,255,255,.86);
   --border: rgba(255,255,255,.24);
   --shadow: rgba(0,0,0,.18);
-  --accent: rgba(255,255,255,.92);
 }
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
 
 body{
-  position: relative;
   margin:0;
   min-height:100svh;
-  display:grid;
-  place-items:center;
- padding: 26px max(26px, 14vw);
+  padding: 26px max(26px, 14vw);
+  overflow-x: hidden;
 
-  /* samo barvno ozadje (brez šopka tukaj) */
   background:
     radial-gradient(900px 520px at 20% 10%, rgba(255,255,255,.18) 0%, transparent 60%),
     radial-gradient(900px 520px at 85% 0%, rgba(0,0,0,.10) 0%, transparent 60%),
     var(--bg);
-  color:var(--text);
+
+  color: var(--text);
   font-family: "Cormorant Garamond", serif;
 }
 
-/* ŠOPEK ČEZ CELOTEN ZASLON */
-
+/* watermark šopek čez cel ekran (čisto v ozadju) */
 body::before{
-  content: "";
+  content:"";
   position: fixed;
   inset: 0;
-  z-index: -2;
   pointer-events: none;
+  z-index: -2;
 
-  background-image: url("bouquet.svg");
-  background-repeat: no-repeat;
-
-  /* premik: bolj desno + malo navzdol */
-  background-position: 65% 55%;
-
-  /* večje */
+  background: url("bouquet.svg") no-repeat 65% 55%;
   background-size: 240vw;
-
-  /* bolj nežen */
-  opacity: 0.08;
-
+  opacity: 0.06;          /* če želiš močnejše: 0.08 */
   filter: blur(0.2px);
 }
 
-
-/* Vsebina mora biti nad šopkom */
-.wrap, .card{
+/* sredinska širina + centriranje */
+.wrap{
+  width: min(820px, 100%);
+  margin: 0 auto;
   position: relative;
-  z-index: 1;
+  z-index: 1;             /* nad watermarkom in side slikami */
 }
 
+/* glavna kartica */
 .card{
-  position: relative;     /* DODANO */
-  overflow: hidden;       /* DODANO */
-
   border: 1px solid rgba(255,255,255,.24);
   border-radius: 22px;
   padding: 18px;
-  background: rgba(0,0,0,.06);
+
+  background: rgba(0,0,0,.14);
+  backdrop-filter: blur(10px);
+
   box-shadow: 0 26px 90px rgba(0,0,0,.18);
 }
 
-
+/* HERO */
 .hero{
   border: 1px solid rgba(255,255,255,.22);
   border-radius: 18px;
   padding: 16px 18px;
-  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+}
+
+.heroImg{
+  display:block;
+  width:100%;
+  max-height:260px;
+  object-fit:cover;
+  border-radius:16px;
+
+  margin-top: 16px;     /* hero slika malce nižje */
+  margin-bottom: 14px;
+
+  opacity: 0.98;
 }
 
 .heroContent{
@@ -108,6 +108,7 @@ body::before{
   max-width: 70ch;
 }
 
+/* obrazec */
 .form{
   margin-top: 16px;
   padding: 16px;
@@ -129,7 +130,7 @@ select, input{
   padding: 12px 12px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.22);
-  background: rgba(0,0,0,.14);
+  background: rgba(0,0,0,.18);
   color: var(--text);
   outline: none;
 }
@@ -153,15 +154,15 @@ select:focus, input:focus{
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.26);
-  background: rgba(0,0,0,.18);
-  color: var(--accent);
+  background: rgba(0,0,0,.22);
+  color: rgba(255,255,255,.95);
   font-weight: 700;
   cursor: pointer;
   transition: transform .12s ease, background .12s ease;
 }
-.btn:hover{ transform: translateY(-1px); background: rgba(0,0,0,.22); }
+.btn:hover{ transform: translateY(-1px); background: rgba(0,0,0,.28); }
 
-.hint{ margin:10px 0 0; min-height: 20px; color: rgba(255,255,255,.88); }
+.hint{ margin:10px 0 0; min-height: 20px; color: rgba(255,255,255,.90); }
 .tiny{ margin:10px 0 0; font-size: 13px; color: rgba(255,255,255,.75); line-height: 1.6; }
 
 .sep{
@@ -177,6 +178,7 @@ h2{
   letter-spacing: .2px;
 }
 
+/* wishlist */
 .wishlist{
   list-style:none;
   padding:0;
@@ -225,74 +227,43 @@ h2{
   opacity: .95;
 }
 
-.wish.taken{
-  opacity: .62;
-}
-.wish.taken .wishName{
-  text-decoration: line-through;
-}
+.wish.taken{ opacity: .62; }
+.wish.taken .wishName{ text-decoration: line-through; }
 .wish.taken .wishLink{
   pointer-events: none;
   text-decoration: none;
   opacity: .55;
 }
 
-/* Mobile: link gre pod ime, da ne tlači */
 @media (max-width: 420px){
   .wishText{ flex-direction: column; }
   .wishLink{ width: fit-content; }
 }
 
-.heroImg{ display:block; 
-  width:100%;
-  max-height:260px;
-  object-fit:cover;
-  border-radius:16px;
-  margin-top: 16px;
-  margin-bottom:14px;
-  opacity:0.95;
-}
+/* SIDE SLIKI: vedno ob strani (z mano pri scrollu) */
 .sideImg{
-  position: absolute;     /* scrolla z dokumentom */
-  top: 120px;             /* kje se začne (prilagodi) */
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
 
-  height: 72vh;
+  height: 78vh;
+  max-width: 24vw;
   width: auto;
-  max-width: 26vw;
-  object-fit: contain;
+  object-fit: cover;
 
-  opacity: 0.55;
+  opacity: 0.90;               /* bolj vidno */
+  filter: none;
   pointer-events: none;
 
-  z-index: 5;             /* V OSPREDJE */
-  filter: none;
-
-  box-shadow: 0 18px 60px rgba(0,0,0,.25);
+  z-index: -1;                 /* ZA kartico, NAD watermarkom */
+  box-shadow: 0 18px 60px rgba(0,0,0,.28);
   border-radius: 18px;
 }
 
+.sideLeft{ left: 24px; }
+.sideRight{ right: 24px; }
 
-
-.sideLeft{
-  left: 24px;
-}
-
-.sideRight{
-  right: 24px;
-}
-
-/* skrij na telefonu */
-@media (max-width: 800px){
-  .sideImg{
-    display:none;
-  }
-}
-/* če želiš, da watermark ostane res zadaj */
-body::before{
-  z-index: -3;
-}
-
-/* side slike naj ostanejo v ospredju */
-.sideImg{
-  z-index: 5;
+/* skrij na telefonu (po želji) */
+@media (max-width: 900px){
+  .sideImg{ display:none; }
 }
