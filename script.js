@@ -42,11 +42,21 @@ function clearRSVPFields() {
   // reset na začetne vrednosti iz HTML
   rsvpForm.reset();
 
-  // zanesljivo vrne select na placeholder (prvi option)
+  // HARD clear (autofill-proof)
   const attendanceEl = document.getElementById("attendance");
-  attendanceEl.selectedIndex = 0;
+  const imeEl = document.getElementById("ime");
+  const priimekEl = document.getElementById("priimek");
 
-  // če imaš local cache, ga pobriši
+  attendanceEl.selectedIndex = 0;
+  imeEl.value = "";
+  priimekEl.value = "";
+
+  // odstrani fokus (Safari/Chrome mobilni včasih takoj vrne vrednosti)
+  attendanceEl.blur();
+  imeEl.blur();
+  priimekEl.blur();
+
+  // pobriši local cache
   localStorage.removeItem(RSVP_LOCAL_KEY);
 }
 
@@ -75,11 +85,9 @@ rsvpForm.addEventListener("submit", async (e) => {
 
     if (!result.ok) throw new Error(result.error || "Napaka");
 
-    // ✅ počisti polja po uspehu
     clearRSVPFields();
     rsvpStatus.textContent = "Hvala! Shranjeno ✅";
 
-    // (Optional) po 3s skrij status
     setTimeout(() => {
       rsvpStatus.textContent = "";
     }, 3000);
@@ -94,16 +102,14 @@ function setItemUI(li, taken, takenBy) {
   const cb = li.querySelector(".wishCheck");
   const isTaken = toBool(taken);
 
-  cb.checked = isTaken;
   li.classList.toggle("taken", isTaken);
+  cb.checked = isTaken;
+
+  // title (optional)
   li.title = isTaken && takenBy ? `Izbral: ${takenBy}` : "";
 
-  // ✅ če je enkrat taken, ga zaklenemo
-  if (isTaken) {
-    cb.disabled = true;
-  } else {
-    cb.disabled = false;
-  }
+  // enkrat taken => vedno zaklenjeno
+  cb.disabled = isTaken;
 }
 
 async function refreshWishlistFromServer() {
@@ -124,16 +130,15 @@ async function refreshWishlistFromServer() {
 wishlistEl.addEventListener("change", async (e) => {
   if (!e.target.classList.contains("wishCheck")) return;
 
-  // če je checkbox disabled, ignoriraj (varnost)
+  // če je že zaklenjeno, ignoriraj
   if (e.target.disabled) return;
 
   const li = e.target.closest(".wish");
   const id = li.dataset.id;
-  const taken = e.target.checked;
 
-  // ✅ dovolimo samo "zaklep" (false -> true)
+  // dovolimo samo "true"
+  const taken = e.target.checked;
   if (!taken) {
-    // uporabnik je poskusil odkljukati
     e.target.checked = true;
     return;
   }
@@ -142,9 +147,8 @@ wishlistEl.addEventListener("change", async (e) => {
   const priimek = document.getElementById("priimek").value.trim();
   const takenBy = (ime || priimek) ? `${ime} ${priimek}`.trim() : "Anonimno";
 
-  // optimistično UI: takoj prečrtaj in zakleni
+  // optimistično UI: zakleni takoj
   setItemUI(li, true, takenBy);
-  e.target.disabled = true;
 
   try {
     const result = await postJSONNoPreflight({
@@ -155,17 +159,11 @@ wishlistEl.addEventListener("change", async (e) => {
     });
 
     if (!result.ok) throw new Error(result.error || "Toggle failed");
-
-    // osveži iz strežnika (za 100% usklajenost)
     await refreshWishlistFromServer();
   } catch (err) {
     console.error(err);
-
-    // rollback: osveži iz strežnika
-    try {
-      await refreshWishlistFromServer();
-    } catch {}
-
+    // rollback
+    try { await refreshWishlistFromServer(); } catch {}
     alert("Ni uspelo shraniti izbire. Poskusi še enkrat.");
   }
 });
