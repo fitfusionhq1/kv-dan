@@ -86,3 +86,16 @@ wishlistEl.addEventListener("change", (e) => {
 });
 
 applyWishlistUI();
+
+.wish.taken {
+  opacity: 0.6;
+}
+
+.wish.taken * {
+  text-decoration: line-through;
+}
+.wish.taken .wishLink {
+  text-decoration: none; /* link naj ostane berljiv */
+  pointer-events: none;  /* optional: onemogoči klik */
+  opacity: 0.5;
+}
