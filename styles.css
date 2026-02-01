@@ -1,57 +1,88 @@
-:root {
-  --bg: #0b1020;
-  --card: #121a33;
-  --text: #eaf0ff;
-  --muted: #b7c3e6;
-  --btn: #4c7dff;
-  --btn2: transparent;
-  --border: rgba(255,255,255,.12);
+// ----- RSVP (shrani lokalno v brskalnik) -----
+const rsvpForm = document.getElementById("rsvpForm");
+const rsvpStatus = document.getElementById("rsvpStatus");
+
+const RSVP_KEY = "najin_dan_rsvp_v1";
+
+function loadRSVP() {
+  try {
+    const raw = localStorage.getItem(RSVP_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+
+    const attendance = document.getElementById("attendance");
+    const ime = document.getElementById("ime");
+    const priimek = document.getElementById("priimek");
+
+    if (data.attendance) attendance.value = data.attendance;
+    if (data.ime) ime.value = data.ime;
+    if (data.priimek) priimek.value = data.priimek;
+
+    rsvpStatus.textContent = "Podatki so že shranjeni na tej napravi ✅";
+  } catch {
+    // ignore
+  }
 }
 
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  min-height: 100svh;
-  display: grid;
-  place-items: center;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: radial-gradient(1000px 600px at 30% 10%, #1b2a6b 0%, transparent 60%),
-              var(--bg);
-  color: var(--text);
-  padding: 24px;
+rsvpForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const attendance = document.getElementById("attendance").value;
+  const ime = document.getElementById("ime").value.trim();
+  const priimek = document.getElementById("priimek").value.trim();
+
+  if (!attendance || !ime || !priimek) {
+    rsvpStatus.textContent = "Prosim izpolni vsa polja.";
+    return;
+  }
+
+  const data = { attendance, ime, priimek, savedAt: new Date().toISOString() };
+  localStorage.setItem(RSVP_KEY, JSON.stringify(data));
+  rsvpStatus.textContent = "Shranjeno ✅ (na tej napravi)";
+});
+
+loadRSVP();
+
+// ----- Wishlist (prečrtaj + shrani lokalno) -----
+const WISHLIST_KEY = "najin_dan_wishlist_v1";
+const wishlistEl = document.getElementById("wishlist");
+
+function loadWishlistState() {
+  try {
+    const raw = localStorage.getItem(WISHLIST_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
 }
 
-.card {
-  width: min(520px, 100%);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), transparent 60%),
-              var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px;
-  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+function saveWishlistState(state) {
+  localStorage.setItem(WISHLIST_KEY, JSON.stringify(state));
 }
 
-h1 { margin: 0 0 8px; font-size: 28px; }
-p { margin: 0 0 14px; color: var(--muted); line-height: 1.5; }
+let wishlistState = loadWishlistState();
 
-.btn {
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-  padding: 12px 14px;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 650;
-  border: 1px solid var(--border);
-  background: var(--btn);
-  color: white;
-  cursor: pointer;
+function applyWishlistUI() {
+  const items = wishlistEl.querySelectorAll(".wish");
+  items.forEach((li) => {
+    const id = li.dataset.id;
+    const checked = !!wishlistState[id];
+    const checkbox = li.querySelector(".wishCheck");
+
+    checkbox.checked = checked;
+    li.classList.toggle("taken", checked);
+  });
 }
 
-.btn.secondary {
-  margin-top: 10px;
-  background: var(--btn2);
-  color: var(--text);
-}
+wishlistEl.addEventListener("change", (e) => {
+  if (!e.target.classList.contains("wishCheck")) return;
 
-.small { margin-top: 10px; font-size: 14px; min-height: 20px; }
+  const li = e.target.closest(".wish");
+  const id = li.dataset.id;
+
+  wishlistState[id] = e.target.checked;
+  saveWishlistState(wishlistState);
+  applyWishlistUI();
+});
+
+applyWishlistUI();
