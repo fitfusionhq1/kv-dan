@@ -3,25 +3,96 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Moja QR stran</title>
-    <meta name="description" content="Stran, ki jo odpre QR koda." />
+    <title>NAJIN DAN</title>
+    <meta name="description" content="Katarina in Vid 11.7.2026" />
     <link rel="stylesheet" href="styles.css" />
   </head>
 
   <body>
-    <main class="card">
-      <h1>Dobrodošli 👋</h1>
-      <p>To je stran, do katere prideš s QR kodo.</p>
+    <main class="wrap">
+      <section class="card">
+        <header class="hero">
+          <h1>NAJIN DAN</h1>
+          <p class="subtitle">Katarina in Vid 11.7.2026 ❤️</p>
+        </header>
 
-      <a class="btn" href="https://example.com" target="_blank" rel="noopener">
-        Odpri povezavo
-      </a>
+        <p class="lead">
+          Hoj! Vesela sva da lahko deliva najin dan s tabo. Da pa bo nama organizacija
+          malo lažja pa bi prosila, če lahko izpolniš sledeče stvari.
+        </p>
 
-      <button class="btn secondary" id="copyLinkBtn">
-        Kopiraj link
-      </button>
+        <form id="rsvpForm" class="form" autocomplete="on">
+          <div class="field">
+            <label for="attendance">Ali prideš?</label>
+            <select id="attendance" name="attendance" required>
+              <option value="" selected disabled>Izberi ...</option>
+              <option value="pridem">Pridem</option>
+              <option value="skoda">Škoda</option>
+            </select>
+          </div>
 
-      <p class="small" id="status" aria-live="polite"></p>
+          <div class="grid2">
+            <div class="field">
+              <label for="ime">Ime</label>
+              <input id="ime" name="ime" type="text" placeholder="npr. Ana" required />
+            </div>
+
+            <div class="field">
+              <label for="priimek">Priimek</label>
+              <input id="priimek" name="priimek" type="text" placeholder="npr. Novak" required />
+            </div>
+          </div>
+
+          <button class="btn" type="submit">Shrani</button>
+          <p class="hint" id="rsvpStatus" aria-live="polite"></p>
+
+          <p class="tiny">
+            Opomba: Ta stran je na GitHub Pages, zato se “Shrani” shrani samo pri tebi (v brskalniku).
+            Če želiš, lahko kasneje dodava pošiljanje v Google Form/Sheet.
+          </p>
+        </form>
+
+        <hr class="sep" />
+
+        <h2>Če te zanima kaj potrebujeva</h2>
+
+        <ul class="wishlist" id="wishlist">
+          <!-- Primeri: zamenjaj ime in linke po svoje -->
+          <li class="wish" data-id="izdelek-1">
+            <label class="wishRow">
+              <input type="checkbox" class="wishCheck" />
+              <span class="wishText">
+                <span class="wishName">Ime izdelka 1</span>
+                <a class="wishLink" href="https://example.com" target="_blank" rel="noopener">Poglej</a>
+              </span>
+            </label>
+          </li>
+
+          <li class="wish" data-id="izdelek-2">
+            <label class="wishRow">
+              <input type="checkbox" class="wishCheck" />
+              <span class="wishText">
+                <span class="wishName">Ime izdelka 2</span>
+                <a class="wishLink" href="https://example.com" target="_blank" rel="noopener">Poglej</a>
+              </span>
+            </label>
+          </li>
+
+          <li class="wish" data-id="izdelek-3">
+            <label class="wishRow">
+              <input type="checkbox" class="wishCheck" />
+              <span class="wishText">
+                <span class="wishName">Ime izdelka 3</span>
+                <a class="wishLink" href="https://example.com" target="_blank" rel="noopener">Poglej</a>
+              </span>
+            </label>
+          </li>
+        </ul>
+
+        <p class="tiny">
+          Klik na kvadratek: označi izdelek kot “izbran” → prečrtan. (Shranjeno samo v tvojem brskalniku.)
+        </p>
+      </section>
     </main>
 
     <script src="script.js"></script>
