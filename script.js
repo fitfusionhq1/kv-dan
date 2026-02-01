@@ -161,3 +161,15 @@ wishlistEl.addEventListener("change", async (e) => {
     console.error(err);
   }
 })();
+function toBool(v) {
+  return v === true || v === 1 || v === "1" || String(v).toLowerCase() === "true";
+}
+
+function setItemUI(li, taken, takenBy) {
+  const cb = li.querySelector(".wishCheck");
+  const isTaken = toBool(taken);
+
+  cb.checked = isTaken;
+  li.classList.toggle("taken", isTaken);
+  li.title = isTaken && takenBy ? `Izbral: ${takenBy}` : "";
+}
