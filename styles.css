@@ -19,6 +19,30 @@ body{
   place-items:center;
   padding: 26px;
 
+  body{
+  position: relative;
+}
+
+/* ŠOPEK ČEZ CELOTEN ZASLON */
+body::before{
+  content: "";
+  position: fixed;
+  inset: 0;
+
+  background: url("bouquet.svg") no-repeat center;
+  background-size: min(1200px, 95vw);
+
+  opacity: 0.18;      /* prilagodi 0.08–0.30 */
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Vsebina mora biti nad šopkom */
+.wrap, .card{
+  position: relative;
+  z-index: 1;
+}
+
   /* Background: barva + watermark šopek */
   background:
     url("bouquet.svg") no-repeat right 26px bottom 22px,
