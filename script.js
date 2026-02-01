@@ -1,5 +1,5 @@
 // === NASTAVI TO ===
-const API_URL = "https://script.google.com/macros/s/AKfycbzbDymLy7RZytpyPBte_rU7pYACwf5NxLVHAZHWiWK885CwiH5ndqIC7ccxPgUglFXy/exec"; // npr. https://script.google.com/macros/s/.../exec
+const API_URL = "https://script.google.com/macros/s/AKfycbzbDymLy7RZytpyPBte_rU7pYACwf5NxLVHAZHWiWK885CwiH5ndqIC7ccxPgUglFXy/exec";
 
 // --- elementi ---
 const rsvpForm = document.getElementById("rsvpForm");
@@ -34,9 +34,17 @@ loadLocalRSVP();
 async function postJSONNoPreflight(payload) {
   const res = await fetch(API_URL, {
     method: "POST",
-    body: JSON.stringify(payload), // fetch bo uporabil text/plain;charset=UTF-8 (simple request)
+    body: JSON.stringify(payload),
   });
-  return res.json();
+
+  // Če Apps Script vrne HTML (login/permission), bo to pomagalo pri debug:
+  const txt = await res.text();
+  try {
+    return JSON.parse(txt);
+  } catch {
+    console.error("API ni vrnil JSON. Prejet odgovor:", txt);
+    return { ok: false, error: "API ni vrnil JSON (permission/deploy?)" };
+  }
 }
 
 async function getWishlist() {
@@ -62,10 +70,8 @@ rsvpForm.addEventListener("submit", async (e) => {
   rsvpStatus.textContent = "Pošiljam ...";
 
   try {
-    // lokalno (da si oseba ne rabi še 1x tipkat)
     saveLocalRSVP(attendance, ime, priimek);
 
-    // v Google Sheet
     const result = await postJSONNoPreflight({
       op: "rsvp",
       attendance,
@@ -78,20 +84,23 @@ rsvpForm.addEventListener("submit", async (e) => {
 
     rsvpStatus.textContent = "Hvala! Shranjeno ✅";
   } catch (err) {
-    rsvpStatus.textContent = "Ni uspelo poslati 😕 Poskusi še enkrat.";
     console.error(err);
+    rsvpStatus.textContent = "Ni uspelo poslati 😕 Poskusi še enkrat.";
   }
 });
 
 // --- Wishlist global sync ---
+function toBool(v) {
+  return v === true || v === 1 || v === "1" || String(v).toLowerCase() === "true";
+}
+
 function setItemUI(li, taken, takenBy) {
   const cb = li.querySelector(".wishCheck");
-  cb.checked = !!taken;
-  li.classList.toggle("taken", !!taken);
+  const isTaken = toBool(taken);
 
-  // optional: majhen “kdo je vzel” (če želiš)
-  // (ne spreminjamo HTML-ja, samo title)
-  li.title = taken && takenBy ? `Izbral: ${takenBy}` : "";
+  cb.checked = isTaken;
+  li.classList.toggle("taken", isTaken);
+  li.title = isTaken && takenBy ? `Izbral: ${takenBy}` : "";
 }
 
 async function refreshWishlistFromServer() {
@@ -116,7 +125,6 @@ wishlistEl.addEventListener("change", async (e) => {
   const id = li.dataset.id;
   const taken = e.target.checked;
 
-  // kdo je izbral? vzamemo iz RSVP polj, če so izpolnjena
   const ime = document.getElementById("ime").value.trim();
   const priimek = document.getElementById("priimek").value.trim();
   const takenBy = (ime || priimek) ? `${ime} ${priimek}`.trim() : "Anonimno";
@@ -124,7 +132,6 @@ wishlistEl.addEventListener("change", async (e) => {
   // optimistično UI
   setItemUI(li, taken, takenBy);
 
-  // zakleni checkbox med pošiljanjem
   e.target.disabled = true;
 
   try {
@@ -137,11 +144,9 @@ wishlistEl.addEventListener("change", async (e) => {
 
     if (!result.ok) throw new Error(result.error || "Toggle failed");
 
-    // po uspehu osveži iz strežnika (da je 100% usklajeno)
     await refreshWishlistFromServer();
   } catch (err) {
     console.error(err);
-    // rollback (poskusi ponovno prebrati)
     try { await refreshWishlistFromServer(); } catch {}
     alert("Ni uspelo shraniti izbire. Poskusi še enkrat.");
   } finally {
@@ -149,11 +154,10 @@ wishlistEl.addEventListener("change", async (e) => {
   }
 });
 
-// začetni load + občasni refresh (da se posodobi, če nekdo drug klikne)
+// začetni load + občasni refresh
 (async function init() {
   try {
     await refreshWishlistFromServer();
-    // refresh na 15s (lahko spremeniš ali odstraniš)
     setInterval(() => {
       refreshWishlistFromServer().catch(() => {});
     }, 15000);
@@ -161,15 +165,4 @@ wishlistEl.addEventListener("change", async (e) => {
     console.error(err);
   }
 })();
-function toBool(v) {
-  return v === true || v === 1 || v === "1" || String(v).toLowerCase() === "true";
-}
 
-function setItemUI(li, taken, takenBy) {
-  const cb = li.querySelector(".wishCheck");
-  const isTaken = toBool(taken);
-
-  cb.checked = isTaken;
-  li.classList.toggle("taken", isTaken);
-  li.title = isTaken && takenBy ? `Izbral: ${takenBy}` : "";
-}
