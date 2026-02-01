@@ -41,9 +41,9 @@ body::before{
   background-image: url("bouquet.svg");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: min(3000px, 250vw);
+  background-size: min(4800px, 480vw);
 
-  opacity: 0.11;          /* 0.08–0.18 je najlepše */
+  opacity: 0.08;          /* 0.08–0.18 je najlepše */
   filter: blur(0.3px);    /* optional */
 }
 
