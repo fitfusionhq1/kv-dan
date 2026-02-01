@@ -7,19 +7,22 @@
     <meta name="description" content="Katarina in Vid 11.7.2026" />
     <link rel="stylesheet" href="styles.css" />
 
-    <!-- Google Fonts (po želji; če jih nočeš, odstrani) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
   </head>
 
   <body>
-  <img src="images_levo.jpg" class="sideImg sideLeft" alt="">
-<img src="images_desno.jpg" class="sideImg sideRight" alt="">
+    <!-- side dekor sliki -->
+    <img src="images_levo.jpg" class="sideImg sideLeft" alt="">
+    <img src="images_desno.jpg" class="sideImg sideRight" alt="">
+
     <main class="wrap">
       <section class="card">
         <header class="hero">
-         <img src="images_hero.webp" class="heroImg" alt="Najin dan">
+          <!-- hero slika -->
+          <img src="images_hero.webp" class="heroImg" alt="Najin dan">
+
           <div class="heroContent">
             <h1>NAJIN DAN</h1>
             <p class="subtitle">Katarina in Vid 11.7.2026 ❤️</p>
@@ -31,7 +34,7 @@
           </div>
         </header>
 
-        <form id="rsvpForm" class="form" autocomplete="on">
+        <form id="rsvpForm" class="form" autocomplete="off">
           <div class="field">
             <label for="attendance">Ali prideš?</label>
             <select id="attendance" name="attendance" required>
@@ -44,12 +47,12 @@
           <div class="grid2">
             <div class="field">
               <label for="ime">Ime</label>
-              <input id="ime" name="ime" type="text" placeholder="npr. Ana" required />
+              <input id="ime" name="ime" type="text" autocomplete="off" placeholder="npr. Ana" required />
             </div>
 
             <div class="field">
               <label for="priimek">Priimek</label>
-              <input id="priimek" name="priimek" type="text" placeholder="npr. Novak" required />
+              <input id="priimek" name="priimek" type="text" autocomplete="off" placeholder="npr. Novak" required />
             </div>
           </div>
 
@@ -66,7 +69,6 @@
         <h2>Če te zanima kaj potrebujeva</h2>
 
         <ul class="wishlist" id="wishlist">
-          <!-- IMPORTANT: data-id se mora ujemati z ID v Google Sheet zavihku WISHLIST -->
           <li class="wish" data-id="izdelek-1">
             <label class="wishRow">
               <input type="checkbox" class="wishCheck" />
@@ -107,4 +109,3 @@
     <script src="script.js"></script>
   </body>
 </html>
-<form id="rsvpForm" class="form" autocomplete="off">
