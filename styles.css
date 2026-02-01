@@ -87,7 +87,7 @@ body::before{
 
 .heroContent h1{
   margin: 0;
-  font-family: "Great Vibes", cursive;
+  font-family: "Dream Avenue", cursive;
   font-weight: 400;
   font-size: clamp(44px, 6vw, 64px);
   letter-spacing: .4px;
