@@ -1,155 +1,164 @@
-:root{
-  --bg:#0b1020;
-  --card:#121a33;
-  --text:#eaf0ff;
-  --muted:#b7c3e6;
-  --border:rgba(255,255,255,.14);
-  --shadow:rgba(0,0,0,.35);
-  --btn:#4c7dff;
+// === NASTAVI TO ===
+const API_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE"; // npr. https://script.google.com/macros/s/.../exec
+
+// --- elementi ---
+const rsvpForm = document.getElementById("rsvpForm");
+const rsvpStatus = document.getElementById("rsvpStatus");
+const wishlistEl = document.getElementById("wishlist");
+
+// --- lokalni cache (da se ime/priimek ne izgubi) ---
+const RSVP_LOCAL_KEY = "najin_dan_rsvp_local_v2";
+
+function loadLocalRSVP() {
+  try {
+    const raw = localStorage.getItem(RSVP_LOCAL_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+
+    if (d.attendance) document.getElementById("attendance").value = d.attendance;
+    if (d.ime) document.getElementById("ime").value = d.ime;
+    if (d.priimek) document.getElementById("priimek").value = d.priimek;
+  } catch {}
 }
 
-*{box-sizing:border-box}
-body{
-  margin:0;
-  min-height:100svh;
-  display:grid;
-  place-items:center;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  background:
-    radial-gradient(900px 500px at 30% 10%, #1b2a6b 0%, transparent 60%),
-    var(--bg);
-  color:var(--text);
-  padding:24px;
+function saveLocalRSVP(attendance, ime, priimek) {
+  localStorage.setItem(
+    RSVP_LOCAL_KEY,
+    JSON.stringify({ attendance, ime, priimek, savedAt: new Date().toISOString() })
+  );
 }
 
-.wrap{ width:min(720px, 100%); }
+loadLocalRSVP();
 
-.card{
-  background: linear-gradient(180deg, rgba(255,255,255,.06), transparent 60%), var(--card);
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:22px;
-  box-shadow:0 18px 60px var(--shadow);
+// --- helper fetch (brez custom headers, da se izognemo preflight/CORS) ---
+async function postJSONNoPreflight(payload) {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(payload), // fetch bo uporabil text/plain;charset=UTF-8 (simple request)
+  });
+  return res.json();
 }
 
-.hero h1{
-  margin:0;
-  font-size:36px;
-  letter-spacing:.5px;
+async function getWishlist() {
+  const url = new URL(API_URL);
+  url.searchParams.set("op", "wishlist");
+  const res = await fetch(url.toString());
+  return res.json();
 }
 
-.subtitle{
-  margin:6px 0 0;
-  color:var(--muted);
-  font-size:16px;
+// --- RSVP submit: zapiše v Sheet + shrani lokalno ---
+rsvpForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const attendance = document.getElementById("attendance").value;
+  const ime = document.getElementById("ime").value.trim();
+  const priimek = document.getElementById("priimek").value.trim();
+
+  if (!attendance || !ime || !priimek) {
+    rsvpStatus.textContent = "Prosim izpolni vsa polja.";
+    return;
+  }
+
+  rsvpStatus.textContent = "Pošiljam ...";
+
+  try {
+    // lokalno (da si oseba ne rabi še 1x tipkat)
+    saveLocalRSVP(attendance, ime, priimek);
+
+    // v Google Sheet
+    const result = await postJSONNoPreflight({
+      op: "rsvp",
+      attendance,
+      ime,
+      priimek,
+      source: "github-pages",
+    });
+
+    if (!result.ok) throw new Error(result.error || "Napaka");
+
+    rsvpStatus.textContent = "Hvala! Shranjeno ✅";
+  } catch (err) {
+    rsvpStatus.textContent = "Ni uspelo poslati 😕 Poskusi še enkrat.";
+    console.error(err);
+  }
+});
+
+// --- Wishlist global sync ---
+function setItemUI(li, taken, takenBy) {
+  const cb = li.querySelector(".wishCheck");
+  cb.checked = !!taken;
+  li.classList.toggle("taken", !!taken);
+
+  // optional: majhen “kdo je vzel” (če želiš)
+  // (ne spreminjamo HTML-ja, samo title)
+  li.title = taken && takenBy ? `Izbral: ${takenBy}` : "";
 }
 
-.lead{
-  margin:16px 0 18px;
-  color:var(--muted);
-  line-height:1.6;
+async function refreshWishlistFromServer() {
+  const data = await getWishlist();
+  if (!data.ok) throw new Error(data.error || "Wishlist load failed");
+
+  const state = data.wishlist || {};
+  const items = wishlistEl.querySelectorAll(".wish");
+
+  items.forEach((li) => {
+    const id = li.dataset.id;
+    const info = state[id];
+    if (!info) return;
+    setItemUI(li, info.taken, info.takenBy);
+  });
 }
 
-.form{ margin-top:8px; }
+wishlistEl.addEventListener("change", async (e) => {
+  if (!e.target.classList.contains("wishCheck")) return;
 
-.field{ display:flex; flex-direction:column; gap:8px; margin:12px 0; }
-label{ font-weight:650; }
+  const li = e.target.closest(".wish");
+  const id = li.dataset.id;
+  const taken = e.target.checked;
 
-select, input{
-  width:100%;
-  padding:12px 12px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.04);
-  color:var(--text);
-  outline:none;
-}
+  // kdo je izbral? vzamemo iz RSVP polj, če so izpolnjena
+  const ime = document.getElementById("ime").value.trim();
+  const priimek = document.getElementById("priimek").value.trim();
+  const takenBy = (ime || priimek) ? `${ime} ${priimek}`.trim() : "Anonimno";
 
-select:focus, input:focus{ border-color: rgba(76,125,255,.75); }
+  // optimistično UI
+  setItemUI(li, taken, takenBy);
 
-.grid2{
-  display:grid;
-  gap:12px;
-  grid-template-columns:1fr;
-}
-@media (min-width: 520px){
-  .grid2{ grid-template-columns:1fr 1fr; }
-}
+  // zakleni checkbox med pošiljanjem
+  e.target.disabled = true;
 
-.btn{
-  width:100%;
-  margin-top:6px;
-  padding:12px 14px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:var(--btn);
-  color:white;
-  font-weight:700;
-  cursor:pointer;
-}
+  try {
+    const result = await postJSONNoPreflight({
+      op: "toggle",
+      id,
+      taken,
+      takenBy,
+    });
 
-.hint{ margin:10px 0 0; min-height:20px; color:var(--muted); }
-.tiny{ margin:10px 0 0; font-size:13px; color:rgba(234,240,255,.7); line-height:1.5; }
+    if (!result.ok) throw new Error(result.error || "Toggle failed");
 
-.sep{
-  border:none;
-  height:1px;
-  background:var(--border);
-  margin:18px 0;
-}
+    // po uspehu osveži iz strežnika (da je 100% usklajeno)
+    await refreshWishlistFromServer();
+  } catch (err) {
+    console.error(err);
+    // rollback (poskusi ponovno prebrati)
+    try { await refreshWishlistFromServer(); } catch {}
+    alert("Ni uspelo shraniti izbire. Poskusi še enkrat.");
+  } finally {
+    e.target.disabled = false;
+  }
+});
 
-h2{ margin:0 0 10px; font-size:18px; }
-
-.wishlist{
-  list-style:none;
-  padding:0;
-  margin:10px 0 0;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.wish{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:12px;
-  background:rgba(255,255,255,.03);
-}
-
-.wishRow{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  cursor:pointer;
-}
-
-.wishCheck{
-  width:18px;
-  height:18px;
-}
-
-.wishText{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  width:100%;
-}
-
-.wishName{ font-weight:650; }
-.wishLink{
-  color:var(--text);
-  opacity:.9;
-  text-decoration:underline;
-  text-underline-offset:3px;
-}
-
-.wish.taken .wishName{
-  text-decoration: line-through;
-  opacity:.55;
-}
-.wish.taken .wishLink{
-  opacity:.45;
-  pointer-events:none;
-  text-decoration:none;
-}
+// začetni load + občasni refresh (da se posodobi, če nekdo drug klikne)
+(async function init() {
+  try {
+    await refreshWishlistFromServer();
+    // refresh na 15s (lahko spremeniš ali odstraniš)
+    setInterval(() => {
+      refreshWishlistFromServer().catch(() => {});
+    }, 15000);
+  } catch (err) {
+    console.error(err);
+  }
+})();
+const API_URL = "https://script.google.com/macros/s/AKfycbzbDymLy7RZytpyPBte_rU7pYACwf5NxLVHAZHWiWK885CwiH5ndqIC7ccxPgUglFXy/exec";
