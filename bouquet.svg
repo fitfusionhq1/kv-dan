@@ -1,0 +1,20 @@
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#ffffff" stroke-width="3" opacity="0.22" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Cvetovi -->
+    <circle cx="250" cy="140" r="36"/>
+    <circle cx="200" cy="180" r="26"/>
+    <circle cx="300" cy="180" r="26"/>
+
+    <!-- Stebla -->
+    <path d="M250 176 C230 240, 210 300, 240 380"/>
+    <path d="M250 176 C270 240, 290 300, 260 380"/>
+
+    <!-- Listi -->
+    <ellipse cx="225" cy="300" rx="26" ry="46"/>
+    <ellipse cx="275" cy="300" rx="26" ry="46"/>
+
+    <!-- Pentlja -->
+    <path d="M240 380 C200 410, 190 440, 210 450"/>
+    <path d="M260 380 C300 410, 310 440, 290 450"/>
+  </g>
+</svg>
